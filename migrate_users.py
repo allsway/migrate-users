@@ -15,7 +15,7 @@ def get_base_url():
     return config.get('Params', 'baseurl')
 
 # Returns user API url
-def get_user_url(id):
+def get_user_url():
     return get_base_url() + '/users?apikey=' + get_key()
 
 # Reads in header row of file and maps header to indices
@@ -29,13 +29,13 @@ def read_header(header):
     return indices
 
 # posts user record to Alma
-def post_user(user,primary_id):
-    url = get_user_url(primary_id)
+def post_user(user):
+    url = get_user_url()
     print(url)
-    print (user)
     headers = {"Content-Type" : "application/json"}
     r = requests.post(url, data = user, headers = headers)
     print (r.content)
+    print (r.status_code)
 
 # Makes email JSON element
 def make_email(val,email_type):
@@ -56,11 +56,13 @@ def make_record_type(val):
     dict['desc'] = val.lower()
     return dict
 
+# add required fixed external account information
 def add_account_type(user_json):
     user_json['account_type'] = {"value":"EXTERNAL","desc":"External"}
     user_json['external_id'] = "SIS"
     return user_json
 
+# Return user group dict
 def make_user_group(val):
     dict = {}
     dict['value'] = val.lower()
@@ -83,23 +85,23 @@ def make_user_json(row,indices):
         elif field_name == 'user_group':
             user_json['user_group'] = make_user_group(row[index])
         elif field_name != 'email_type':
-            print (field_name)
             user_json[field_name] = row[index]
     user_json = add_account_type(user_json)
     user_json = json.dumps(user_json)
     print(user_json)
-    post_user(user_json,primary)
+    return user_json
+
 
 # Reads in user CSV file
 def read_users(users):
-    fields = {}
     f = open(users, 'rt')
     try:
         reader = csv.reader(f)
         header = next(reader)
         indices = read_header(header)
         for row in reader:
-            make_user_json(row,indices)
+            user_json = make_user_json(row,indices)
+            post_user(user_json)
     finally:
         f.close()
 
