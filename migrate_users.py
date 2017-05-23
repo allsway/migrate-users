@@ -4,7 +4,6 @@ import csv
 import requests
 import json
 import configparser
-import xml.etree.ElementTree as ET
 
 # Returns API key
 def get_key():
@@ -74,10 +73,7 @@ def make_user_json(row,indices):
     user_json = {}
     for index in range(0,len(row)):
         field_name = indices[index]
-        if field_name == 'primary_id':
-            primary = row[index]
-            user_json[field_name] = row[index]
-        elif field_name == 'record_type':
+        if field_name == 'record_type':
             user_json[field_name] = make_record_type(row[index])
         elif field_name == 'email_address':
             email = make_email(row[index],row[indices['email_type']])
